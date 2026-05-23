@@ -100,6 +100,18 @@ function generateTransforms(theta, phi, rho, time){
   return step2;
 }
 
+//TODO: we can generate surface normal vectors by taking the cross product of two of our vertex edges, 
+// creating a vector orthogonal to the plane which both lie on
+// We must make calculations post transformation for any coordinate which will translate/rotate/scale in any way
+function generateNormals(transform_mat){
+  //Remove padding from transformation matrix
+  raw_transformation = new Float32Array([
+    transform_mat[0], transform_mat[1], transform_mat[2],
+    transform_mat[4], transform_mat[5], transform_mat[6],
+    transform_mat[8], transform_mat[9], transform_mat[10],
+  ]);
+}
+
 function main(){
   //init canvas and gl API
   const canvas = document.querySelector("#gl-canvas");
@@ -207,13 +219,6 @@ var cube_data = [
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube_data), gl.STATIC_DRAW);
   
-  
-  var mvpMat = generateTransforms(2, 1, 3, 2.0);
-  var transformUniLocation = gl.getUniformLocation(program, "transform");
-  gl.uniformMatrix4fv(transformUniLocation, false, mvpMat);
-  // const value = gl.getUniform(program, transformUniLocation);
-  // console.log("confirmation:" + value);
-  
   //vertex array object
   var vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
@@ -231,7 +236,7 @@ var cube_data = [
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   
   gl.bindVertexArray(vao);
- 
+
   
   //opengl config
   gl.frontFace(gl.CCW);
@@ -244,9 +249,6 @@ var cube_data = [
   var count = cube_data.length/3;
   gl.drawArrays(primitiveType, offset, count);
   
-  
-  //TODO: request animation frame is how we step our time value
-  //It is a JS api function that requests a new animation frame (no shit)
   function render(time){
     time *= 0.001;
 
