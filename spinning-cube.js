@@ -121,7 +121,7 @@ function generateNormals(transform_mat) {
   mat3.invert(outmat, raw_transformation);
   mat3.transpose(outmat, outmat);
 
-  console.log(outmat);
+  // console.log(outmat);
 
   return outmat;
 }
@@ -255,11 +255,20 @@ function main() {
     uniform mat3 mat_normal;
 
     out vec3 v_normal;
+    out float lightAngle;
 
     void main() {
-      gl_Position = 0.5 * transform * in_position;
+      gl_Position = transform * in_position;
+      
+      //vec3 ambientLight = vec3(0.3, 0.3, 0.3) //ambient brightness intensity
+      vec3 light_color = vec3(1,1,1);                  //light color
+      vec3 light_direction = normalize(vec3(0,5,13));  //direction light is coming from
+      
+      vec3 transformed_normal = normalize(vec3(mat_normal * in_normal));         //surface normals, accounting for surface transformation
 
-      vec3 v_normal = mat_normal * in_normal;
+      float light_angle = max(dot(transformed_normal.xyz, light_direction), 0.0);  //cos between light direction and normals
+
+      vec3 final_lighting = light_angle * light_color; //Add ambient light
     }
   `;
 
@@ -267,6 +276,7 @@ function main() {
     precision highp float;
 
     in vec3 v_nomral;
+    in float lightAngle;
     
     out vec4 outColor;
 
@@ -274,7 +284,7 @@ function main() {
       outColor = vec4(1, 0, 0, 1);
     }
   `;
-
+  
   var vertexShader = createShader(gl, gl.VERTEX_SHADER, vss);
   var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fss);
 
@@ -325,7 +335,12 @@ function main() {
 
     var modelMat = generateTransforms(12, 3, 4, time);
     gl.uniformMatrix4fv(transformUniLocation, false, modelMat);
+
+
+
     var normMat = generateNormals(modelMat);
+    console.log(normalUniLoc);
+    console.log(normMat);
     gl.uniformMatrix3fv(normalUniLoc, false, normMat);
 
     gl.clearColor(1., 1., 1., 1.);
