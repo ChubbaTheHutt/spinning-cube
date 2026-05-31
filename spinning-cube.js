@@ -73,6 +73,15 @@ function zRotationMat(rho) {
   ]);
 }
 
+function perspectiveProjMat(amplifier) {
+  return new Float32Array([
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,amplifier,
+    0,0,0,1,
+  ]);
+}
+
 function multiplyMat4(a, b) {
   const out = new Float32Array(16);
 
@@ -90,15 +99,17 @@ function multiplyMat4(a, b) {
   return out;
 }
 
-function generateTransforms(theta, phi, rho, time) {
+function generateTransforms(theta, phi, rho, proj_amp, time) {
   var rotx = xRotationMat(theta * time);
   var roty = yRotationMat(phi * time);
   var rotz = zRotationMat(rho * time);
+  var proj = perspectiveProjMat(proj_amp);
 
   var step = multiplyMat4(rotx, roty);
   var step2 = multiplyMat4(step, rotz);
+  var step3 = multiplyMat4(step2, proj);
 
-  return step2;
+  return step3;
 }
 
 //TODO: we can generate surface normal vectors by taking the cross product of two of our vertex edges, 
@@ -117,7 +128,6 @@ function generateNormals(transform_mat) {
   //normal generation is based on finding the transpose of the inverse of our model matrix
   //find a library, doing it by hand will be cumbersome
   //we will use glmatrix, an oss matrix and vector math library, optimized for webgl usage
-
   mat3.invert(outmat, raw_transformation);
   mat3.transpose(outmat, outmat);
 
@@ -254,21 +264,20 @@ function main() {
     uniform mat4 transform; 
     uniform mat3 mat_normal;
 
-    out vec3 v_normal;
-    out float lightAngle;
+    out vec3 final_lighting;
 
     void main() {
       gl_Position = transform * in_position;
       
-      //vec3 ambientLight = vec3(0.3, 0.3, 0.3) //ambient brightness intensity
+      vec3 ambient_light = vec3(0.3, 0.3, 0.3);        //ambient brightness intensity
       vec3 light_color = vec3(1,1,1);                  //light color
-      vec3 light_direction = normalize(vec3(0,5,13));  //direction light is coming from
+      vec3 light_direction = normalize(vec3(0,1,2));  //direction light is coming from
       
       vec3 transformed_normal = normalize(vec3(mat_normal * in_normal));         //surface normals, accounting for surface transformation
 
       float light_angle = max(dot(transformed_normal.xyz, light_direction), 0.0);  //cos between light direction and normals
 
-      vec3 final_lighting = light_angle * light_color; //Add ambient light
+      final_lighting = ambient_light + (light_angle * light_color); //Add ambient light
     }
   `;
 
@@ -276,12 +285,12 @@ function main() {
     precision highp float;
 
     in vec3 v_nomral;
-    in float lightAngle;
+    in vec3 final_lighting;
     
     out vec4 outColor;
 
     void main() {
-      outColor = vec4(1, 0, 0, 1);
+      outColor = vec4(vec3(0.4, 0, 0) * final_lighting, 1);
     }
   `;
   
@@ -333,15 +342,13 @@ function main() {
   function render(time) {
     time *= 0.001;
 
-    var modelMat = generateTransforms(12, 3, 4, time);
-    gl.uniformMatrix4fv(transformUniLocation, false, modelMat);
-
-
+    var modelMat = generateTransforms(2, 3, 4, -1, time * 0.5);
+    gl.uniformMatrix4fv(transformUniLocation, false, modelMat); //transforms
 
     var normMat = generateNormals(modelMat);
-    console.log(normalUniLoc);
-    console.log(normMat);
-    gl.uniformMatrix3fv(normalUniLoc, false, normMat);
+    // console.log(normalUniLoc);
+    // console.log(normMat);
+    gl.uniformMatrix3fv(normalUniLoc, false, normMat); //normal transforms
 
     gl.clearColor(1., 1., 1., 1.);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -349,6 +356,7 @@ function main() {
     //bind the current VAO
     gl.bindVertexArray(vao);
 
+    //DRAW
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
     var count = cube_data.length / 3;
