@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://bgv8tfanckhde"]
+
+[node name="User Interface" type="Control" unique_id=2022193325]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FileMenu" type="MenuButton" parent="." unique_id=1434704120]
+layout_mode = 0
+offset_right = 35.0
+offset_bottom = 31.0
+text = "File"
+
+[node name="EditMenu" type="MenuButton" parent="." unique_id=2018610425]
+layout_mode = 0
+offset_left = 43.0
+offset_right = 81.0
+offset_bottom = 31.0
+text = "Edit"
+
+[node name="HelpMenu" type="MenuButton" parent="." unique_id=117296853]
+layout_mode = 0
+offset_left = 86.0
+offset_right = 130.0
+offset_bottom = 31.0
+text = "Help
+"
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=3782603]
+layout_mode = 0
+offset_left = 220.0
+offset_top = 149.0
+offset_right = 918.0
+offset_bottom = 520.0
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer" unique_id=398851956]
+handle_input_locally = false
+render_target_update_mode = 4
