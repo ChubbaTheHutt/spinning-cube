@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "qglcanvas.h"
 
 #include <QApplication>
 #include <QMenuBar>
@@ -10,6 +11,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
+    QGLCanvas *qglc = new QGLCanvas(&w);
 
     //MENU BAR (Move to new file?)
     QMenuBar *qmb = w.menuBar();
