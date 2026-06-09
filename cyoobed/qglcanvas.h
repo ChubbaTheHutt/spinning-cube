@@ -12,9 +12,9 @@ class QGLCanvas : public QOpenGLWidget, protected QOpenGLFunctions
         explicit QGLCanvas(QWidget *parent = nullptr);
 
     protected:
-        void initializeGL();
-        void paintGL();
-        void resizeGL();
+        void initializeGL() override;
+        void paintGL() override;
+        void resizeGL(int w, int h) override;
 
     signals:
 };
