@@ -1,4 +1,5 @@
 #include "qglcanvas.h"
+#include <string>
 
 QGLCanvas::QGLCanvas(QWidget *parent) : QOpenGLWidget{parent}
 {
@@ -20,6 +21,44 @@ void QGLCanvas::resizeGL(int w, int h){
 
 void QGLCanvas::paintGL(){
     glClear(GL_COLOR_BUFFER_BIT);
+
+
+    const char* vss = R"(
+        #version 300 es
+        vec4 in_position;
+
+        void main(){
+            gl_Position = in_position;
+        }
+    )";
+
+    const char* fss = R"(
+        #version 300 es
+        precision highp float;
+
+        out vec4 outColor;
+
+        void main(){
+            outColor = vec4(0.4, 0.7, 0.5, 0.0);
+        }
+    )";
+
+    GLuint vertshader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertshader, 1, &vss, NULL);
+    GLuint fragshader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragshader, 1, &fss, NULL);
+
+    glCompileShader(vertshader);
+    glCompileShader(fragshader);
+
+
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertshader);
+    glAttachShader(program, fragshader);
+
+    glDeleteShader(vertshader);
+    glDeleteShader(fragshader);
+
 
     int x{1};
 };
